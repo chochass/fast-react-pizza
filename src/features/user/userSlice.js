@@ -8,10 +8,9 @@ function getPosition() {
 }
 
 export const fetchAddress = createAsyncThunk(
-    'user/fetchAdress',
+    'user/fetchAddress',
     async function () {
         // 1) We get the user's geolocation position
-        console.log('Fetching position...')
         const positionObj = await getPosition()
         const position = {
             latitude: positionObj.coords.latitude,
@@ -19,13 +18,11 @@ export const fetchAddress = createAsyncThunk(
         }
 
         // 2) Then we use a reverse geocoding API to get a description of the user's address, so we can display it the order form, so that the user can correct it if wrong
-        console.log('Fetching address...')
         const addressObj = await getAddress(position)
         const address = `${addressObj?.locality}, ${addressObj?.city} ${addressObj?.postcode}, ${addressObj?.countryName}`
 
-        // 3) Then we return an object with the data that we are interested in
-        // payload of the fullfiled state
-        console.log('Returning payload:', { position, address })
+        // 3) Then we return an object with the data that we are interested in.
+        // Payload of the FULFILLED state
         return { position, address }
     }
 )
@@ -48,10 +45,9 @@ const userSlice = createSlice({
     },
     extraReducers: (builder) =>
         builder
-            .addCase(
-                fetchAddress.pending,
-                (state, action) => (state.status = 'loading')
-            )
+            .addCase(fetchAddress.pending, (state, action) => {
+                state.status = 'loading'
+            })
             .addCase(fetchAddress.fulfilled, (state, action) => {
                 state.position = action.payload.position
                 state.address = action.payload.address
@@ -59,8 +55,6 @@ const userSlice = createSlice({
             })
             .addCase(fetchAddress.rejected, (state, action) => {
                 state.status = 'error'
-                // state.error = action.error.message
-                // TO DO
                 state.error =
                     'There was a problem getting your address. Make sure to fill this field!'
             }),

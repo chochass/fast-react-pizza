@@ -21,7 +21,7 @@ function CreateOrder() {
         username,
         status: addressStatus,
         position,
-        adress,
+        address,
         error: errorAddress,
     } = useSelector((state) => state.user)
     const isLoadingAddress = addressStatus === 'loading'
@@ -31,12 +31,14 @@ function CreateOrder() {
 
     const formErrors = useActionData()
     const dispatch = useDispatch()
+
     const cart = useSelector(getCart)
     const totalCartPrice = useSelector(getTotalCartPrice)
     const priorityPrice = withPriority ? totalCartPrice * 0.2 : 0
     const totalPrice = totalCartPrice + priorityPrice
 
     if (!cart.length) return <EmptyCart />
+
     return (
         <div className="px-4 py-6">
             <h2 className="mb-8 text-xl font-semibold">
@@ -81,17 +83,18 @@ function CreateOrder() {
                             type="text"
                             name="address"
                             disabled={isLoadingAddress}
-                            defaultValue={adress}
+                            defaultValue={address}
                             required
                         />
-                        {addressStatus == 'error' && (
+                        {addressStatus === 'error' && (
                             <p className="mt-2 rounded-md bg-red-100 p-2 text-xs text-red-700">
                                 {errorAddress}
                             </p>
                         )}
                     </div>
-                    {!position.lattitude && !position.longtitude && (
-                        <span className="absolute right-[3px] top-[35px] z-20 sm:top-[3px] md:right-[5px] md:top-[5px]">
+
+                    {!position.latitude && !position.longitude && (
+                        <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
                             <Button
                                 disabled={isLoadingAddress}
                                 type="small"
@@ -100,7 +103,7 @@ function CreateOrder() {
                                     dispatch(fetchAddress())
                                 }}
                             >
-                                Get Possition
+                                Get position
                             </Button>
                         </span>
                     )}
@@ -108,7 +111,7 @@ function CreateOrder() {
 
                 <div className="mb-12 flex items-center gap-5">
                     <input
-                        className="h-6 w-6 accent-yellow-500 focus:outline-none focus:ring focus:ring-yellow-400 focus:ring-offset-2"
+                        className="h-6 w-6 accent-yellow-400 focus:outline-none focus:ring focus:ring-yellow-400 focus:ring-offset-2"
                         type="checkbox"
                         name="priority"
                         id="priority"
@@ -130,18 +133,19 @@ function CreateOrder() {
                         type="hidden"
                         name="position"
                         value={
-                            position.longtitude && position.lattitude
-                                ? `${position.lattitude}, ${position.longtitude}`
+                            position.longitude && position.latitude
+                                ? `${position.latitude},${position.longitude}`
                                 : ''
                         }
                     />
+
                     <Button
-                        type="primary"
                         disabled={isSubmitting || isLoadingAddress}
+                        type="primary"
                     >
                         {isSubmitting
-                            ? 'Placing order'
-                            : `Order now for ${formatCurrency(totalPrice)}`}
+                            ? 'Placing order....'
+                            : `Order now from ${formatCurrency(totalPrice)}`}
                     </Button>
                 </div>
             </Form>
@@ -158,18 +162,18 @@ export async function action({ request }) {
         cart: JSON.parse(data.cart),
         priority: data.priority === 'true',
     }
-    console.log(order)
 
     const errors = {}
     if (!isValidPhone(order.phone))
-        errors.phone = 'Please give us your correct phone number.'
+        errors.phone =
+            'Please give us your correct phone number. We might need it to contact you.'
 
     if (Object.keys(errors).length > 0) return errors
 
-    // if everyting is okay create new order and redirect
+    // If everything is okay, create new order and redirect
     const newOrder = await createOrder(order)
 
-    //Do Not overuse // performance optimization
+    // Do NOT overuse
     store.dispatch(clearCart())
 
     return redirect(`/order/${newOrder.id}`)
